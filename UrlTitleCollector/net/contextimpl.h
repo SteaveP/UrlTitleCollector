@@ -3,7 +3,6 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
-// TODO this is circular include and dependency?
 #include "context.h"
 
 namespace nc
@@ -17,6 +16,7 @@ class AsioContext::impl
 
 public:
 	impl();
+
 	boost::asio::io_service& get_io_service() { return io_service_; }
 
 	boost::shared_ptr<IConnection> create_connection(const Url& url);

@@ -11,7 +11,10 @@
 #include "data/iconnection.h"
 #include "net/context.h"
 
-void try_to_start_threads(nc::net::AsioContext& context, boost::thread_group& threads)
+// TODO explicit declare move ctors and operators to types with explicitly defined dtor
+// TODO use https://boost-experimental.github.io/di/
+
+void try_to_start_worker_threads(nc::net::AsioContext& context, boost::thread_group& threads)
 {
 	static bool started = false;
 
@@ -69,16 +72,18 @@ int main(int argc, char* argv[])
 						boost::make_shared<boost::any>(extractorPtr)
 					);
 
-					try_to_start_threads(context, threads);
+					try_to_start_worker_threads(context, threads);
 				}
 				else
 				{
 					std::cerr << "Connection creation for \"" << url.getUrl() << "\" failed" << std::endl;
+					urlTitleCollector.addUrl(index, nc::net::Url::create(line), "<connection creation failed>");
 				}
 			}
 			else
 			{
 				std::cerr << "Url parse for \"" << line << "\" failed" << std::endl;
+				urlTitleCollector.addUrl(index, nc::net::Url::create(line), "<url parse failed>");
 			}
 		}
 

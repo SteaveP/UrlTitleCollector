@@ -158,7 +158,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="data\httpprovider.cpp" />
-    <ClCompile Include="data\ihttpprovider.cpp" />
     <ClCompile Include="data\htmlparser.cpp" />
     <ClCompile Include="data\urltitleextractor.cpp" />
     <ClCompile Include="data\urltitlecollector.cpp" />

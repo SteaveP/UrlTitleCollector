@@ -25,10 +25,11 @@ Url UrlParser::Parse(const std::string& url)
 		return std::move(Url(std::move(url), std::move(protocol), std::move(host), std::move(path)));
 	}
 	else
-		return std::move(Url());
+		return std::move(Url(""));
 }
 
-Url::Url()
+Url::Url(const std::string& url)
+	: url_(url)
 { // empty 
 }
 

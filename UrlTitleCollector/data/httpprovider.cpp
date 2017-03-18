@@ -3,6 +3,8 @@
 #include <sstream>
 #include <algorithm>
 
+#include <boost/make_shared.hpp>
+
 #include "../net/url.h"
 
 namespace
@@ -12,6 +14,11 @@ const std::string border_str{ "\r\n\r\n" };
 
 namespace nc
 {
+	
+boost::shared_ptr<IHttpProvider> IHttpProvider::create()
+{
+	return boost::make_shared<HttpProvider>();
+}
 
 HttpReplyHeader::HttpReplyHeader()
 	: HttpReplyHeader(0u, 0u, "", "")
@@ -42,6 +49,7 @@ HttpReplyHeader HttpProvider::parseHeader(const char* buffer, size_t length, siz
 	std::string location;
 
 	std::string line, key, value;
+	// read first line
 	if (std::getline(istr, line))
 	{
 		std::istringstream iss_line(line);
@@ -51,6 +59,7 @@ HttpReplyHeader HttpProvider::parseHeader(const char* buffer, size_t length, siz
 		if (key.find("HTTP/") != 0 || !iss_line)
 			return HttpReplyHeader();
 	}
+	// read other lines
 	while (std::getline(istr, line))
 	{
 		// TODO trim \r from rightside
@@ -58,6 +67,7 @@ HttpReplyHeader HttpProvider::parseHeader(const char* buffer, size_t length, siz
 		iss_line >> key;
 
 		std::transform(begin(key), end(key), begin(key), ::tolower);
+
 		if (key.find("content-length") == 0)
 		{
 			iss_line >> content_length;
@@ -70,8 +80,8 @@ HttpReplyHeader HttpProvider::parseHeader(const char* buffer, size_t length, siz
 
 	if (istr.fail() && !istr.eof())
 		return HttpReplyHeader();
-
-
+	
+	// find real header border
 	headerBorder += border_str.length();
 
 	return HttpReplyHeader(

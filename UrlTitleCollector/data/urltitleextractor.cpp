@@ -10,13 +10,13 @@ namespace nc
 UrlTitleExtractor::UrlTitleExtractor(net::Url&& url, int index, 
 	IUrlTitleCollector* titleCollector, IHttpProvider* httpProvider, IHtmlParser* htmlParser, IConnection* connection)
 : url_(std::move(url)), index_(index), urlTitleCollector_(titleCollector), htmlParser_(htmlParser)
-, httpProvider_(httpProvider), connection_(connection), recieved_content_size_(0)
+, httpProvider_(httpProvider), connection_(connection), recieved_body_size_(0)
 {}
 
 UrlTitleExtractor::UrlTitleExtractor(const net::Url& url, int index, 
 	IUrlTitleCollector* titleCollector, IHttpProvider* httpProvider, IHtmlParser* htmlParser, IConnection* connection)
 : url_(url), index_(index), urlTitleCollector_(titleCollector), htmlParser_(htmlParser)
-, httpProvider_(httpProvider), connection_(connection), recieved_content_size_(0)
+, httpProvider_(httpProvider), connection_(connection), recieved_body_size_(0)
 {}
 
 UrlTitleExtractor::~UrlTitleExtractor()
@@ -75,7 +75,7 @@ bool UrlTitleExtractor::on_read_header(const char* buffer, const boost::system::
 		return false;
 	}
 
-	// NOTE first read might not receive whole headers
+	// NOTE first read might not receive whole header
 
 	assert(httpProvider_);
 	assert(connection_);
@@ -84,14 +84,16 @@ bool UrlTitleExtractor::on_read_header(const char* buffer, const boost::system::
 	if (httpProvider_ == nullptr)
 		return false;
 
+	// feed internal buffer
 	buffer_.insert(buffer_.end(), buffer, buffer + bytes_transferred);
 
+	// try to parse header
 	size_t header_border = -1;
 	reply_header_ = httpProvider_->parseHeader(buffer_.c_str(), buffer_.length(), header_border);
 
 	if (header_border == -1)
 	{
-		// read until whole header is received
+		// header received partially, read until whole header is received
 		if (connection_)
 			connection_->async_read(boost::bind(&UrlTitleExtractor::on_read_header, this,
 				boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
@@ -99,9 +101,10 @@ bool UrlTitleExtractor::on_read_header(const char* buffer, const boost::system::
 		return true;
 	}
 
-	// remove header from buffer
+	// remove header from buffer, because buffer may contain body
 	buffer_.erase(begin(buffer_), begin(buffer_) + header_border);
-	recieved_content_size_ += buffer_.length();
+	// now buffer contains only body (if body is received)
+	recieved_body_size_ += buffer_.length();
 	
 	if (reply_header_.getCode() == 200)
 	{
@@ -138,43 +141,46 @@ bool UrlTitleExtractor::on_read_body(const char* buffer, const boost::system::er
 	}
 
 	assert(buffer);
-
-	recieved_content_size_ += bytes_transferred;
-	buffer_.insert(buffer_.end(), buffer, buffer + bytes_transferred);
-	
 	assert(connection_);
 	assert(htmlParser_);
-	assert(recieved_content_size_ <= reply_header_.getContentLength());
+	assert(recieved_body_size_ <= reply_header_.getContentLength());
 
-	bool titleFounded = false;
+	// feed internal buffer
+	recieved_body_size_ += bytes_transferred;
+	buffer_.insert(buffer_.end(), buffer, buffer + bytes_transferred);
+
 	if (htmlParser_ == nullptr)
 		return false;
 
-	bool clearBuffer = true;
 	std::string title;
+	bool titleFound = false;
+	bool needToClearBuffer = true;
+
 	try
 	{
 		title = htmlParser_->parseTitle(buffer_.c_str(), buffer_.length());
-		titleFounded = !title.empty();
+		titleFound = !title.empty();
 	}
 	catch (const HtmlParserNotFoundException&)
 	{}
 	catch (const HtmlParserPartialTagException&)
 	{
-		clearBuffer = false;
+		// buffer contains only part of title tag 
+		// so we must feed another part of the body into internal buffer		
+		needToClearBuffer = false;
 	}
 
-	if (clearBuffer)
+	if (needToClearBuffer)
 		buffer_.clear();
 
-	bool continue_reading = !titleFounded && recieved_content_size_ < reply_header_.getContentLength();
+	bool continue_reading = !titleFound && recieved_body_size_ < reply_header_.getContentLength();
 	
 	if (connection_ && continue_reading)
 		connection_->async_read(boost::bind(&UrlTitleExtractor::on_read_body, this, 
 			boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
 	else if (urlTitleCollector_)
 	{
-		urlTitleCollector_->addUrl(index_, url_, titleFounded ? title : "<not found>");
+		urlTitleCollector_->addUrl(index_, url_, titleFound ? title : "<not found>");
 	}
 
 	return true;

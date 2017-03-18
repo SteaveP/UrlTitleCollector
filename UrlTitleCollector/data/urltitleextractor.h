@@ -36,7 +36,7 @@ private:
 	IUrlTitleCollector* urlTitleCollector_;
 	IHttpProvider* httpProvider_;
 	IHtmlParser* htmlParser_;
-	size_t recieved_content_size_;
+	size_t recieved_body_size_;
 	
 	std::string buffer_;
 

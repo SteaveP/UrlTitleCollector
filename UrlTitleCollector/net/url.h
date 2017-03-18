@@ -11,11 +11,11 @@ class Url
 {
 	friend class UrlParser;
 
-	Url();
+	Url(const std::string& url);
 	Url(std::string url, std::string protocol, std::string host, std::string path);
 
 public:
-	static Url create() { return Url(); }
+	static Url create(const std::string& url) { return Url(url); }
 
 	const std::string& getProtocol() const { return protocol_; }
 	const std::string& getHost() const { return host_; }
@@ -23,7 +23,7 @@ public:
 
 	const std::string& getUrl() const { return url_; }
 
-	bool isValid() const { return !getUrl().empty(); }
+	bool isValid() const { return !getUrl().empty() && !host_.empty(); }
 	explicit operator bool() const { return isValid(); }
 
 private:
@@ -35,6 +35,8 @@ private:
 };
 
 std::ostream& operator << (std::ostream & os, const Url& url);
+
+//////////////////////////////////////////////////////////////////////////
 
 class UrlParser
 {

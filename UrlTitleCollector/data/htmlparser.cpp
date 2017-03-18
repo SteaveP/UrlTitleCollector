@@ -23,7 +23,6 @@ private:
 	std::regex regex_;
 };
 
-// TODO ignore space between tags?
 HtmlParser::impl::impl()
 	: regex_("<title>(((?!</title>).)*)(</title>)?", std::regex_constants::icase)
 {
@@ -39,6 +38,8 @@ HtmlParser::~HtmlParser()
 
 std::string HtmlParser::parseTitle(const char* buffer, size_t length)
 {
+	// NOTE I know, regex for html and xml is bad thing, buf in this case works fine
+
 	std::cmatch results;
 
 	if (std::regex_search(buffer, buffer + length, results, pimpl_->regex_))

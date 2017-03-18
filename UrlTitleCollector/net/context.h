@@ -13,20 +13,17 @@ namespace net
 
 class Url;
 
-//////////////////////////////////////////////////////////////////////////
-
 class AsioContext
 {
 public:	
 	AsioContext();
 	~AsioContext();
 
-	class impl;
-	impl* getImpl() const { return pimpl_.get(); }
-
+	void run_loop();
 	boost::shared_ptr<IConnection> create_connection(const Url& url);
 
-	void run_loop();
+	class impl;
+	impl* getImpl() const { return pimpl_.get(); }
 
 private:
 	std::unique_ptr<impl> pimpl_;
