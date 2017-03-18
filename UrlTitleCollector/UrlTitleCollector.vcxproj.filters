@@ -54,6 +54,9 @@
     <ClCompile Include="data\ihttpprovider.cpp">
       <Filter>Source Files\data</Filter>
     </ClCompile>
+    <ClCompile Include="data\htmlparser.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="net\url.h">
@@ -84,6 +87,12 @@
       <Filter>Header Files\data</Filter>
     </ClInclude>
     <ClInclude Include="data\httpprovider.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\htmlparser.h">
+      <Filter>Header Files\net</Filter>
+    </ClInclude>
+    <ClInclude Include="data\ihtmlparser.h">
       <Filter>Header Files\data</Filter>
     </ClInclude>
   </ItemGroup>

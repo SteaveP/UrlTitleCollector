@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
 		nc::net::UrlParser urlParser;
 		nc::UrlTitleCollector urlTitleCollector(context, argv[2]);
 		auto httpProvider = nc::IHttpProvider::create();
+		auto htmlParser = nc::IHtmlParser::create();
 		
 		std::ifstream input_file(argv[1], std::ios_base::in);
 		std::string line; std::size_t index = 0;
@@ -59,11 +60,14 @@ int main(int argc, char* argv[])
 				if (auto connectionPtr = context.create_connection(url))
 				{
 					auto extractorPtr = boost::make_shared<nc::UrlTitleExtractor>(
-						std::move(url), index, &urlTitleCollector, httpProvider.get(), connectionPtr.get());
+						std::move(url), index, &urlTitleCollector, httpProvider.get(), 
+						htmlParser.get(), connectionPtr.get()
+					);
 
 					connectionPtr->connect(
 						boost::bind(&nc::UrlTitleExtractor::on_connected, extractorPtr, boost::placeholders::_1),
-						boost::make_shared<boost::any>(extractorPtr));
+						boost::make_shared<boost::any>(extractorPtr)
+					);
 
 					try_to_start_threads(context, threads);
 				}

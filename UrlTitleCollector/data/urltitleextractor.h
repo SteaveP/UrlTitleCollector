@@ -5,6 +5,7 @@
 
 #include "iurltitlecollector.h"
 #include "ihttpprovider.h"
+#include "htmlparser.h"
 
 #include <boost/system/error_code.hpp>
 
@@ -15,9 +16,9 @@ class UrlTitleExtractor
 {
 public:
 	explicit UrlTitleExtractor(const net::Url& url, int index, IUrlTitleCollector* titleCollector = nullptr, 
-		IHttpProvider* httpProvider = nullptr, IConnection* connection = nullptr);
+		IHttpProvider* httpProvider = nullptr, IHtmlParser* htmlParser = nullptr, IConnection* connection = nullptr);
 	explicit UrlTitleExtractor(net::Url&& url, int index, IUrlTitleCollector* titleCollector = nullptr, 
-		IHttpProvider* httpProvider = nullptr, IConnection* connection = nullptr);
+		IHttpProvider* httpProvider = nullptr, IHtmlParser* htmlParser = nullptr, IConnection* connection = nullptr);
 
 	~UrlTitleExtractor();
 	
@@ -34,6 +35,7 @@ private:
 	IConnection* connection_;
 	IUrlTitleCollector* urlTitleCollector_;
 	IHttpProvider* httpProvider_;
+	IHtmlParser* htmlParser_;
 	size_t recieved_content_size_;
 	
 	std::string buffer_;
