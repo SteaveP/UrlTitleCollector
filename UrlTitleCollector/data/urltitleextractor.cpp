@@ -264,7 +264,7 @@ bool UrlTitleExtractor::build_and_send_request(const std::string& url_text)
 		buffer_.clear();
 		recieved_body_size_ = 0;
 
-		if (reply_header_.isConnectionClosed())
+		if (reply_header_.isConnectionClosed() || redirect_url.getProtocol() != url_.getProtocol())
 		{
 			// create new connection and extractor
 			if (connectionFactory_)

@@ -163,6 +163,7 @@
     <ClCompile Include="data\urltitlecollector.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="net\contextimpl.cpp" />
+    <ClCompile Include="net\httpconnection.cpp" />
     <ClCompile Include="net\httpsconnection.cpp" />
     <ClCompile Include="net\context.cpp" />
     <ClCompile Include="net\url.cpp" />
@@ -177,6 +178,7 @@
     <ClInclude Include="data\iurltitlecollector.h" />
     <ClInclude Include="data\urltitlecollector.h" />
     <ClInclude Include="net\contextimpl.h" />
+    <ClInclude Include="net\httpconnection.h" />
     <ClInclude Include="net\httpsconnection.h" />
     <ClInclude Include="net\context.h" />
     <ClInclude Include="net\url.h" />

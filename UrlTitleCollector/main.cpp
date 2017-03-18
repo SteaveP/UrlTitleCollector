@@ -14,6 +14,7 @@
 // TODO explicit declare move ctors and operators to types with explicitly defined dtor
 // TODO use https://boost-experimental.github.io/di/
 // TODO use logging
+// TODO remove code duplication between HttpsConnection and with HttpConnection
 
 void try_to_start_worker_threads(nc::net::AsioContext& context, boost::thread_group& threads)
 {

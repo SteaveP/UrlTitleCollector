@@ -4,10 +4,12 @@
 
 #include <boost/make_shared.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 
 
 #include "url.h"
 #include "httpsconnection.h"
+#include "httpconnection.h"
 
 namespace nc
 {
@@ -40,19 +42,17 @@ boost::shared_ptr<nc::IConnection> AsioContext::impl::create_connection(const Ur
 	if (url.isValid() == false)
 		return boost::shared_ptr<nc::IConnection>();
 
-	// TODO transform to lower case before compare
-	bool useHttps = true; //url.getProtocol() == "https" || url.getProtocol().empty();
+	std::string protocol = boost::to_lower_copy(url.getProtocol());
+	bool useHttps = protocol == "https" || protocol.empty();
 	const char* port = useHttps ? "443" : "80";
 
 	boost::asio::ip::tcp::resolver::query query(url.getHost(), port);
 	boost::asio::ip::tcp::resolver::iterator iterator = resolver_.resolve(query);
 
 	if (useHttps)
-		return boost::dynamic_pointer_cast<nc::IConnection>(
-			boost::make_shared<HttpsConnection>(io_service_, ctx_, iterator));
+		return boost::make_shared<HttpsConnection>(io_service_, ctx_, iterator);
 	else
-		// TODO support http protocol
-		throw std::exception("http connection not implemented yet");
+		return boost::make_shared<HttpConnection>(io_service_, iterator);
 }
 
 void AsioContext::impl::run_loop()
