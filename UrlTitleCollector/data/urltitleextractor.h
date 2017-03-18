@@ -4,6 +4,7 @@
 #include "../net/url.h"
 
 #include "iurltitlecollector.h"
+#include "ihttpprovider.h"
 
 #include <boost/system/error_code.hpp>
 
@@ -13,8 +14,10 @@ namespace nc
 class UrlTitleExtractor
 {
 public:
-	explicit UrlTitleExtractor(const net::Url& url, int index, IUrlTitleCollector* titleCollector = nullptr, IConnection* connection = nullptr);
-	explicit UrlTitleExtractor(net::Url&& url, int index, IUrlTitleCollector* titleCollector = nullptr, IConnection* connection = nullptr);
+	explicit UrlTitleExtractor(const net::Url& url, int index, IUrlTitleCollector* titleCollector = nullptr, 
+		IHttpProvider* httpProvider = nullptr, IConnection* connection = nullptr);
+	explicit UrlTitleExtractor(net::Url&& url, int index, IUrlTitleCollector* titleCollector = nullptr, 
+		IHttpProvider* httpProvider = nullptr, IConnection* connection = nullptr);
 
 	~UrlTitleExtractor();
 	
@@ -26,13 +29,16 @@ private:
 	bool on_read_body(const char* buffer, const boost::system::error_code& error, size_t bytes_transferred);
 
 	void send_request(const std::string& request);
-	std::string make_request_header(const net::Url& url, bool close_connection = false);
 
 private:
 	IConnection* connection_;
 	IUrlTitleCollector* urlTitleCollector_;
+	IHttpProvider* httpProvider_;
 	size_t recieved_content_size_;
+	
+	std::string buffer_;
 
+	HttpReplyHeader reply_header_;
 	net::Url url_;
 	int index_;
 };

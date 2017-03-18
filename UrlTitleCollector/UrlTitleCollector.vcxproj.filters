@@ -48,6 +48,12 @@
     <ClCompile Include="net\contextimpl.cpp">
       <Filter>Source Files\net</Filter>
     </ClCompile>
+    <ClCompile Include="data\httpprovider.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\ihttpprovider.cpp">
+      <Filter>Source Files\data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="net\url.h">
@@ -73,6 +79,12 @@
     </ClInclude>
     <ClInclude Include="net\contextimpl.h">
       <Filter>Header Files\net</Filter>
+    </ClInclude>
+    <ClInclude Include="data\ihttpprovider.h">
+      <Filter>Header Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\httpprovider.h">
+      <Filter>Header Files\data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

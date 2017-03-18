@@ -157,6 +157,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="data\httpprovider.cpp" />
+    <ClCompile Include="data\ihttpprovider.cpp" />
     <ClCompile Include="data\urltitleextractor.cpp" />
     <ClCompile Include="data\urltitlecollector.cpp" />
     <ClCompile Include="main.cpp" />
@@ -166,6 +168,8 @@
     <ClCompile Include="net\url.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="data\httpprovider.h" />
+    <ClInclude Include="data\ihttpprovider.h" />
     <ClInclude Include="data\urltitleextractor.h" />
     <ClInclude Include="data\iconnection.h" />
     <ClInclude Include="data\iurltitlecollector.h" />
