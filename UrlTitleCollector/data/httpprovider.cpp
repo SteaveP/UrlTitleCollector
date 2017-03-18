@@ -1,9 +1,10 @@
 #include "httpprovider.h"
 
 #include <sstream>
-#include <algorithm>
 
 #include <boost/make_shared.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 
 #include "../net/url.h"
 
@@ -21,11 +22,12 @@ boost::shared_ptr<IHttpProvider> IHttpProvider::create()
 }
 
 HttpReplyHeader::HttpReplyHeader()
-	: HttpReplyHeader(0u, 0u, "", "")
+	: HttpReplyHeader(0u, 0u, false, "", "")
 {}
 
-HttpReplyHeader::HttpReplyHeader(size_t code, size_t content_length, std::string location, std::string header_text)
-	: code_(code), content_length_(content_length), location_(location), header_text_(header_text)
+HttpReplyHeader::HttpReplyHeader(size_t code, size_t content_length, bool is_connection_closed, std::string location, std::string header_text)
+	: code_(code), content_length_(content_length), connection_closed_(is_connection_closed)
+	, location_(location), header_text_(header_text)
 {}
 
 HttpProvider::HttpProvider()
@@ -46,6 +48,7 @@ HttpReplyHeader HttpProvider::parseHeader(const char* buffer, size_t length, siz
 	std::istringstream istr(header_text.substr(0, headerBorder));
 
 	size_t code = 0, content_length = -1;
+	bool is_connection_closed = false;
 	std::string location;
 
 	std::string line, key, value;
@@ -62,11 +65,12 @@ HttpReplyHeader HttpProvider::parseHeader(const char* buffer, size_t length, siz
 	// read other lines
 	while (std::getline(istr, line))
 	{
-		// TODO trim \r from rightside
+		boost::trim_if(line, [](auto& c) { return c == '\r'; });
+
 		std::istringstream iss_line(line);
 		iss_line >> key;
 
-		std::transform(begin(key), end(key), begin(key), ::tolower);
+		boost::to_lower(key);
 
 		if (key.find("content-length") == 0)
 		{
@@ -75,6 +79,15 @@ HttpReplyHeader HttpProvider::parseHeader(const char* buffer, size_t length, siz
 		else if (key.find("location") == 0)
 		{
 			std::getline(iss_line, location);
+			boost::trim(location);
+		}
+		else if (key.find("connection") == 0)
+		{
+			std::string value;
+			iss_line >> value;
+			
+			// first letter may be C or c
+			is_connection_closed = value.find("lose") == 1;
 		}
 	}
 
@@ -85,7 +98,7 @@ HttpReplyHeader HttpProvider::parseHeader(const char* buffer, size_t length, siz
 	headerBorder += border_str.length();
 
 	return HttpReplyHeader(
-		std::move(code), std::move(content_length), 
+		std::move(code), std::move(content_length), is_connection_closed,
 		std::move(location), std::move(header_text.substr(0, headerBorder))
 	);
 }

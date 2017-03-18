@@ -112,10 +112,11 @@ bool UrlTitleExtractor::on_read_header(const char* buffer, const boost::system::
 			connection_->async_read(boost::bind(&UrlTitleExtractor::on_read_body, this,
 				boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
 	}
-//	else if (reply_header_.getCode() >= 300 && reply_header_.getCode() < 400)
-// 	{
-// 		// TODO redirect
-// 	}
+	else if (reply_header_.getCode() >= 300 && reply_header_.getCode() < 400)
+	{
+		if (!redirect())
+			return false;
+	}
 	else
 	{
 		if (urlTitleCollector_)
@@ -184,6 +185,100 @@ bool UrlTitleExtractor::on_read_body(const char* buffer, const boost::system::er
 	}
 
 	return true;
+}
+
+bool UrlTitleExtractor::on_skip_body(const char* buffer, const boost::system::error_code& error, size_t bytes_transferred)
+{
+	if (error)
+	{
+		std::cerr << "TitleExtractor::on_skip_body: " << error.message() << std::endl;
+
+		if (urlTitleCollector_)
+			urlTitleCollector_->addUrl(index_, url_, "<skip body failed>");
+
+		return false;
+	}
+
+	// feed internal buffer
+	recieved_body_size_ += bytes_transferred;
+
+	bool continue_reading = recieved_body_size_ < reply_header_.getContentLength();
+
+	if (continue_reading)
+	{
+		if (connection_)
+			connection_->async_read(boost::bind(&UrlTitleExtractor::on_skip_body, this,
+				boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
+	}
+	else
+	{
+		if (!build_and_send_request(reply_header_.getLocation()))
+			return false;
+	}
+
+	return true;
+}
+
+bool UrlTitleExtractor::redirect()
+{
+	if (reply_header_.getLocation().empty())
+	{
+		if (urlTitleCollector_)
+			urlTitleCollector_->addUrl(index_, url_, "<empty redirection url>");
+
+		return false;
+	}
+	else if (url_.getUrl() == reply_header_.getLocation())
+	{
+		if (urlTitleCollector_)
+			urlTitleCollector_->addUrl(index_, url_, "<cyclic redirection>");
+
+		return false;
+	}
+	else if (reply_header_.getContentLength() == -1 || recieved_body_size_ == reply_header_.getContentLength())
+	{
+		if (!build_and_send_request(reply_header_.getLocation()))
+			return false;
+	}
+	else
+	{
+		// skip body
+		if (connection_)
+			connection_->async_read(boost::bind(&UrlTitleExtractor::on_skip_body, this,
+				boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
+	}
+
+	return true;
+}
+
+bool UrlTitleExtractor::build_and_send_request(const std::string& url_text)
+{
+	if (httpProvider_ == nullptr)
+		return true;
+
+	if (auto redirect_url = net::UrlParser().Parse(url_text))
+	{
+		buffer_.clear();
+		recieved_body_size_ = 0;
+
+		if (reply_header_.isConnectionClosed())
+		{
+			// TODO create new connection
+
+			if (urlTitleCollector_)
+				urlTitleCollector_->addUrl(index_, url_, "<redirection connection closed>");
+
+			return false;
+		}
+		else
+		{
+			send_request(httpProvider_->buildRequest(redirect_url));
+		}
+
+		return true;
+	}
+	
+	return false;
 }
 
 void UrlTitleExtractor::send_request(const std::string& request)

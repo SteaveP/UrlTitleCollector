@@ -28,7 +28,11 @@ private:
 	bool on_write(const boost::system::error_code& error, size_t bytes_transferred);
 	bool on_read_header(const char* buffer, const boost::system::error_code& error, size_t bytes_transferred);
 	bool on_read_body(const char* buffer, const boost::system::error_code& error, size_t bytes_transferred);
+	bool on_skip_body(const char* buffer, const boost::system::error_code& error, size_t bytes_transferred);
 
+	bool redirect();
+
+	bool build_and_send_request(const std::string& url_text);
 	void send_request(const std::string& request);
 
 private:

@@ -14,6 +14,7 @@ Url UrlParser::Parse(const std::string& url)
 	std::regex r(pattern);
 	std::smatch results;
 
+	// TODO if url endth with \r regex_search fails
 	bool result = std::regex_search(url, results, r);
 
 	if (result)

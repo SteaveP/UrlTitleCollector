@@ -15,16 +15,18 @@ class HttpReplyHeader
 {
 public:
 	HttpReplyHeader();
-	HttpReplyHeader(size_t code, size_t content_length, std::string location, std::string header_text);
+	HttpReplyHeader(size_t code, size_t content_length, bool is_connection_closed, std::string location, std::string header_text);
 
 	size_t getCode() const { return code_; }
 	size_t getContentLength() const { return content_length_; }
+	bool isConnectionClosed() const { return connection_closed_; }
 
 	const std::string& getLocation() const { return location_; }
 	const std::string& getText() const { return header_text_; }
 private:
 	size_t code_;
 	size_t content_length_;
+	bool connection_closed_;
 
 	std::string location_;
 
