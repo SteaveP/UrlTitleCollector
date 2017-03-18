@@ -12,7 +12,7 @@ HttpsConnection::HttpsConnection(
 	boost::asio::io_service& io_service,
 	boost::asio::ssl::context& context,
 	boost::asio::ip::tcp::resolver::iterator endpoint_iterator)
-: socket_(io_service, context), connection_point_(endpoint_iterator), connected_(false)
+: socket_(io_service, context), strand_(io_service), connection_point_(endpoint_iterator), connected_(false)
 {}
 
 HttpsConnection::~HttpsConnection()
@@ -26,8 +26,8 @@ void HttpsConnection::connect(TConnectionCallback connectionCallback, TAnyPtr da
 		setData(data);
 
 	boost::asio::async_connect(socket_.lowest_layer(), connection_point_,
-		boost::bind(&HttpsConnection::handle_connect, getptr(), connectionCallback,
-			boost::asio::placeholders::error));
+		strand_.wrap(boost::bind(&HttpsConnection::handle_connect, getptr(), connectionCallback,
+			boost::asio::placeholders::error)));
 }
 
 void HttpsConnection::close()
@@ -42,9 +42,9 @@ void HttpsConnection::close()
 void HttpsConnection::async_read(TReadCallback callback)
 {
 	boost::asio::async_read(socket_, buffer_reply_, boost::asio::transfer_at_least(static_cast<size_t>(1)),
-		boost::bind(&HttpsConnection::handle_read, getptr(), callback,
+		strand_.wrap(boost::bind(&HttpsConnection::handle_read, getptr(), callback,
 			boost::asio::placeholders::error,
-			boost::asio::placeholders::bytes_transferred));
+			boost::asio::placeholders::bytes_transferred)));
 }
 
 void HttpsConnection::async_write(const char* message, size_t message_size, TWriteCallback callback)
@@ -57,9 +57,9 @@ void HttpsConnection::async_write(const char* message, size_t message_size, TWri
 	ostr.write(message, message_size);
 
 	boost::asio::async_write(socket_, buffer_request_,
-		boost::bind(&HttpsConnection::handle_write, getptr(), callback,
+		strand_.wrap(boost::bind(&HttpsConnection::handle_write, getptr(), callback,
 			boost::asio::placeholders::error,
-			boost::asio::placeholders::bytes_transferred));
+			boost::asio::placeholders::bytes_transferred)));
 }
 
 void HttpsConnection::handle_connect(TConnectionCallback connectionCallback, const boost::system::error_code& error)
@@ -76,8 +76,8 @@ void HttpsConnection::handle_connect(TConnectionCallback connectionCallback, con
 	connected_ = true;
 
 	socket_.async_handshake(boost::asio::ssl::stream_base::client,
-		boost::bind(&HttpsConnection::handle_handshake, getptr(), connectionCallback,
-			boost::asio::placeholders::error));
+		strand_.wrap(boost::bind(&HttpsConnection::handle_handshake, getptr(), connectionCallback,
+			boost::asio::placeholders::error)));
 }
 
 void HttpsConnection::handle_handshake(TConnectionCallback connectionCallback, const boost::system::error_code& error)

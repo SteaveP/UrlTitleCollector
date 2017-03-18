@@ -45,6 +45,9 @@ private:
 	boost::asio::streambuf buffer_request_;
 	boost::asio::streambuf buffer_reply_;
 
+	// use strand to prevent concurrent callbacks
+	boost::asio::strand strand_;
+
 	boost::asio::ip::tcp::resolver::iterator connection_point_;
 
 	bool connected_;
