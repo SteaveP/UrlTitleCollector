@@ -16,9 +16,11 @@ class UrlTitleExtractor
 {
 public:
 	explicit UrlTitleExtractor(const net::Url& url, int index, IUrlTitleCollector* titleCollector = nullptr, 
-		IHttpProvider* httpProvider = nullptr, IHtmlParser* htmlParser = nullptr, IConnection* connection = nullptr);
+		IHttpProvider* httpProvider = nullptr, IHtmlParser* htmlParser = nullptr, 
+		IConnectionFactory* connectionFactory = nullptr, IConnection* connection = nullptr);
 	explicit UrlTitleExtractor(net::Url&& url, int index, IUrlTitleCollector* titleCollector = nullptr, 
-		IHttpProvider* httpProvider = nullptr, IHtmlParser* htmlParser = nullptr, IConnection* connection = nullptr);
+		IHttpProvider* httpProvider = nullptr, IHtmlParser* htmlParser = nullptr, 
+		IConnectionFactory* connectionFactory = nullptr, IConnection* connection = nullptr);
 
 	~UrlTitleExtractor();
 	
@@ -37,6 +39,7 @@ private:
 
 private:
 	IConnection* connection_;
+	IConnectionFactory* connectionFactory_;
 	IUrlTitleCollector* urlTitleCollector_;
 	IHttpProvider* httpProvider_;
 	IHtmlParser* htmlParser_;

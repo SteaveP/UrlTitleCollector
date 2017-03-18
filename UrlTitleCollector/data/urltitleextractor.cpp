@@ -3,20 +3,23 @@
 #include <iostream>
 #include <sstream>
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 namespace nc
 {
 
-UrlTitleExtractor::UrlTitleExtractor(net::Url&& url, int index, 
-	IUrlTitleCollector* titleCollector, IHttpProvider* httpProvider, IHtmlParser* htmlParser, IConnection* connection)
+UrlTitleExtractor::UrlTitleExtractor(net::Url&& url, int index, IUrlTitleCollector* titleCollector, 
+	IHttpProvider* httpProvider, IHtmlParser* htmlParser, 
+	IConnectionFactory* connectionFactory, IConnection* connection)
 : url_(std::move(url)), index_(index), urlTitleCollector_(titleCollector), htmlParser_(htmlParser)
-, httpProvider_(httpProvider), connection_(connection), recieved_body_size_(0)
+, httpProvider_(httpProvider), connection_(connection), connectionFactory_(connectionFactory), recieved_body_size_(0)
 {}
 
-UrlTitleExtractor::UrlTitleExtractor(const net::Url& url, int index, 
-	IUrlTitleCollector* titleCollector, IHttpProvider* httpProvider, IHtmlParser* htmlParser, IConnection* connection)
+UrlTitleExtractor::UrlTitleExtractor(const net::Url& url, int index, IUrlTitleCollector* titleCollector, 
+	IHttpProvider* httpProvider, IHtmlParser* htmlParser, 
+	IConnectionFactory* connectionFactory, IConnection* connection)
 : url_(url), index_(index), urlTitleCollector_(titleCollector), htmlParser_(htmlParser)
-, httpProvider_(httpProvider), connection_(connection), recieved_body_size_(0)
+, httpProvider_(httpProvider), connection_(connection), connectionFactory_(connectionFactory), recieved_body_size_(0)
 {}
 
 UrlTitleExtractor::~UrlTitleExtractor()
@@ -263,9 +266,32 @@ bool UrlTitleExtractor::build_and_send_request(const std::string& url_text)
 
 		if (reply_header_.isConnectionClosed())
 		{
-			// TODO create new connection
+			// create new connection and extractor
+			if (connectionFactory_)
+			{
+				// NOTE new extractor have url that differs from source url
+				auto new_connection = connectionFactory_->create_connection(redirect_url);
+				if (!new_connection)
+				{
+					if (urlTitleCollector_)
+						urlTitleCollector_->addUrl(index_, url_, "<redirection create connection failed>");
 
-			if (urlTitleCollector_)
+					return false;
+				}
+
+				auto new_exctractor = boost::make_shared<UrlTitleExtractor>(
+					std::move(redirect_url), index_, urlTitleCollector_, httpProvider_,
+					htmlParser_, connectionFactory_, new_connection.get()
+				);
+				
+				new_connection->connect(
+					boost::bind(&UrlTitleExtractor::on_connected, new_exctractor, boost::placeholders::_1),
+					boost::make_shared<boost::any>(new_exctractor)
+				);
+
+				return true;
+			}
+			else if (urlTitleCollector_)
 				urlTitleCollector_->addUrl(index_, url_, "<redirection connection closed>");
 
 			return false;

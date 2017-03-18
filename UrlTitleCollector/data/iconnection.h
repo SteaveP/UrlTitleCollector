@@ -8,6 +8,11 @@
 namespace nc
 {
 
+namespace net
+{
+class Url;
+}
+
 class IConnection
 {
 public:
@@ -34,9 +39,16 @@ public:
 	virtual void close() = 0;
 
 	virtual void setData(TAnyPtr data) = 0;
+	virtual TAnyPtr getData() const = 0;
 
 	virtual void async_read(TReadCallback callback) = 0;
 	virtual void async_write(const char* message, size_t message_size, TWriteCallback callback) = 0;
+};
+
+class IConnectionFactory
+{
+public:
+	virtual boost::shared_ptr<IConnection> create_connection(const net::Url& url) = 0;
 };
 
 }

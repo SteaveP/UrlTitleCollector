@@ -13,6 +13,7 @@
 
 // TODO explicit declare move ctors and operators to types with explicitly defined dtor
 // TODO use https://boost-experimental.github.io/di/
+// TODO use logging
 
 void try_to_start_worker_threads(nc::net::AsioContext& context, boost::thread_group& threads)
 {
@@ -63,8 +64,8 @@ int main(int argc, char* argv[])
 				if (auto connectionPtr = context.create_connection(url))
 				{
 					auto extractorPtr = boost::make_shared<nc::UrlTitleExtractor>(
-						std::move(url), index, &urlTitleCollector, httpProvider.get(), 
-						htmlParser.get(), connectionPtr.get()
+						std::move(url), index, &urlTitleCollector, httpProvider.get(),
+						htmlParser.get(), &context, connectionPtr.get()
 					);
 
 					connectionPtr->connect(

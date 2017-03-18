@@ -27,6 +27,7 @@ public:
 	virtual void close() override;
 
 	virtual void setData(TAnyPtr data) override { data_ = data; }
+	virtual TAnyPtr getData() const override { return data_; }
 
 	virtual void async_read(TReadCallback callback) override;
 	virtual void async_write(const char* message, size_t message_size, TWriteCallback callback) override;
