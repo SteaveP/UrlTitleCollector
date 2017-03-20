@@ -30,8 +30,6 @@ private:
 	bool on_write(const boost::system::error_code& error, size_t bytes_transferred);
 	bool on_read_header(const char* buffer, const boost::system::error_code& error, size_t bytes_transferred);
 
-	bool dispatch_reply(const HttpReplyHeader& replyHeader);
-
 	bool on_read_body(const char* buffer, const boost::system::error_code& error, size_t bytes_transferred);
 	bool on_skip_body(const char* buffer, const boost::system::error_code& error, size_t bytes_transferred);
 
@@ -39,6 +37,9 @@ private:
 
 	bool build_and_send_request(const std::string& url_text);
 	void send_request(const std::string& request);
+
+	bool dispatch_reply(const HttpReplyHeader& replyHeader);
+	bool parse_title();
 
 private:
 	IConnection* connection_;

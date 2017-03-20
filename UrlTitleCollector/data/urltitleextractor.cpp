@@ -137,39 +137,7 @@ bool UrlTitleExtractor::on_read_body(const char* buffer, const boost::system::er
 	if (htmlParser_ == nullptr)
 		return false;
 
-	std::string title;
-	bool titleFound = false;
-	bool needToClearBuffer = true;
-
-	// parse title
-	try
-	{
-		title = htmlParser_->parseTitle(buffer_.c_str(), buffer_.length());
-		titleFound = !title.empty();
-	}
-	catch (const HtmlParserNotFoundException&)
-	{}
-	catch (const HtmlParserPartialTagException&)
-	{
-		// buffer contains only part of title tag 
-		// so we must feed another part of the body into internal buffer		
-		needToClearBuffer = false;
-	}
-
-	if (needToClearBuffer)
-		buffer_.clear();
-
-	bool continue_reading = !titleFound && recieved_body_size_ < reply_header_.getContentLength();
-	
-	if (connection_ && continue_reading)
-		connection_->async_read(boost::bind(&UrlTitleExtractor::on_read_body, this, 
-			boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
-	else if (urlTitleCollector_)
-	{
-		urlTitleCollector_->addUrl(index_, url_, titleFound ? title : "<not found>");
-	}
-
-	return true;
+	return parse_title();
 }
 
 bool UrlTitleExtractor::on_skip_body(const char* buffer, const boost::system::error_code& error, size_t bytes_transferred)
@@ -304,9 +272,16 @@ bool UrlTitleExtractor::dispatch_reply(const HttpReplyHeader& replyHeader)
 {
 	if (replyHeader.getCode() == 200)
 	{
-		if (connection_)
-			connection_->async_read(boost::bind(&UrlTitleExtractor::on_read_body, this,
-				boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
+		// TODO fix condition: content length may be missing and getContentLength() will be return size_t::max
+		bool haveIncomingBody = buffer_.length() < replyHeader.getContentLength();
+		if (haveIncomingBody)
+		{
+			if (connection_)
+				connection_->async_read(boost::bind(&UrlTitleExtractor::on_read_body, this,
+					boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
+		}
+		else if (!parse_title())
+			return false;
 	}
 	else if (replyHeader.getCode() >= 300 && replyHeader.getCode() < 400)
 	{
@@ -319,6 +294,43 @@ bool UrlTitleExtractor::dispatch_reply(const HttpReplyHeader& replyHeader)
 			urlTitleCollector_->addUrl(index_, url_, "<code " + std::to_string(replyHeader.getCode()) + ">");
 
 		return false;
+	}
+
+	return true;
+}
+
+bool UrlTitleExtractor::parse_title()
+{
+	std::string title;
+	bool titleFound = false;
+	bool needToClearBuffer = true;
+
+	// parse title
+	try
+	{
+		title = htmlParser_->parseTitle(buffer_.c_str(), buffer_.length());
+		titleFound = !title.empty();
+	}
+	catch (const HtmlParserNotFoundException&) 
+	{ /* nothing */ }
+	catch (const HtmlParserPartialTagException&)
+	{
+		// buffer contains only part of title tag 
+		// so we must feed another part of the body into internal buffer		
+		needToClearBuffer = false;
+	}
+
+	if (needToClearBuffer)
+		buffer_.clear();
+
+	bool continue_reading = !titleFound && recieved_body_size_ < reply_header_.getContentLength();
+
+	if (connection_ && continue_reading)
+		connection_->async_read(boost::bind(&UrlTitleExtractor::on_read_body, this,
+			boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
+	else if (urlTitleCollector_)
+	{
+		urlTitleCollector_->addUrl(index_, url_, titleFound ? title : "<not found>");
 	}
 
 	return true;
