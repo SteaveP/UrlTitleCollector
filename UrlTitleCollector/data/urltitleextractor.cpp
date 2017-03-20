@@ -109,26 +109,7 @@ bool UrlTitleExtractor::on_read_header(const char* buffer, const boost::system::
 	// now buffer contains only body (if body is received)
 	recieved_body_size_ += buffer_.length();
 	
-	if (reply_header_.getCode() == 200)
-	{
-		if (connection_)
-			connection_->async_read(boost::bind(&UrlTitleExtractor::on_read_body, this,
-				boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
-	}
-	else if (reply_header_.getCode() >= 300 && reply_header_.getCode() < 400)
-	{
-		if (!redirect())
-			return false;
-	}
-	else
-	{
-		if (urlTitleCollector_)
-			urlTitleCollector_->addUrl(index_, url_, "<code " + std::to_string(reply_header_.getCode()) + ">");
-
-		return false;
-	}
-
-	return true;
+	return dispatch_reply(reply_header_);
 }
 
 bool UrlTitleExtractor::on_read_body(const char* buffer, const boost::system::error_code& error, size_t bytes_transferred)
@@ -160,6 +141,7 @@ bool UrlTitleExtractor::on_read_body(const char* buffer, const boost::system::er
 	bool titleFound = false;
 	bool needToClearBuffer = true;
 
+	// parse title
 	try
 	{
 		title = htmlParser_->parseTitle(buffer_.c_str(), buffer_.length());
@@ -316,6 +298,30 @@ void UrlTitleExtractor::send_request(const std::string& request)
 		connection_->async_write(request.c_str(), request.length(),
 			boost::bind(&UrlTitleExtractor::on_write, this, 
 				boost::placeholders::_1, boost::placeholders::_2));
+}
+
+bool UrlTitleExtractor::dispatch_reply(const HttpReplyHeader& replyHeader)
+{
+	if (replyHeader.getCode() == 200)
+	{
+		if (connection_)
+			connection_->async_read(boost::bind(&UrlTitleExtractor::on_read_body, this,
+				boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
+	}
+	else if (replyHeader.getCode() >= 300 && replyHeader.getCode() < 400)
+	{
+		if (!redirect())
+			return false;
+	}
+	else
+	{
+		if (urlTitleCollector_)
+			urlTitleCollector_->addUrl(index_, url_, "<code " + std::to_string(replyHeader.getCode()) + ">");
+
+		return false;
+	}
+
+	return true;
 }
 
 }

@@ -8,9 +8,11 @@ namespace nc
 namespace net
 {
 
+namespace asio = boost::asio;
+
 HttpConnection::HttpConnection(
-	boost::asio::io_service& io_service,
-	boost::asio::ip::tcp::resolver::iterator endpoint_iterator)
+	asio::io_service& io_service,
+	asio::ip::tcp::resolver::iterator endpoint_iterator)
 : socket_(io_service), strand_(io_service), connection_point_(endpoint_iterator), connected_(false)
 {}
 
@@ -24,9 +26,9 @@ void HttpConnection::connect(TConnectionCallback connectionCallback, TAnyPtr dat
 	if (data)
 		setData(data);
 
-	boost::asio::async_connect(socket_, connection_point_,
+	asio::async_connect(socket_, connection_point_,
 		strand_.wrap(boost::bind(&HttpConnection::handle_connect, getptr(), connectionCallback,
-			boost::asio::placeholders::error)));
+			asio::placeholders::error)));
 }
 
 void HttpConnection::close()
@@ -40,10 +42,10 @@ void HttpConnection::close()
 
 void HttpConnection::async_read(TReadCallback callback)
 {
-	boost::asio::async_read(socket_, buffer_reply_, boost::asio::transfer_at_least(static_cast<size_t>(1)),
+	asio::async_read(socket_, buffer_reply_, asio::transfer_at_least(static_cast<size_t>(1)),
 		strand_.wrap(boost::bind(&HttpConnection::handle_read, getptr(), callback,
-			boost::asio::placeholders::error,
-			boost::asio::placeholders::bytes_transferred)));
+			asio::placeholders::error,
+			asio::placeholders::bytes_transferred)));
 }
 
 void HttpConnection::async_write(const char* message, size_t message_size, TWriteCallback callback)
@@ -55,10 +57,10 @@ void HttpConnection::async_write(const char* message, size_t message_size, TWrit
 	std::ostream ostr(&buffer_request_);
 	ostr.write(message, message_size);
 
-	boost::asio::async_write(socket_, buffer_request_,
+	asio::async_write(socket_, buffer_request_,
 		strand_.wrap(boost::bind(&HttpConnection::handle_write, getptr(), callback,
-			boost::asio::placeholders::error,
-			boost::asio::placeholders::bytes_transferred)));
+			asio::placeholders::error,
+			asio::placeholders::bytes_transferred)));
 }
 
 void HttpConnection::handle_connect(TConnectionCallback connectionCallback, const boost::system::error_code& error)
@@ -90,7 +92,7 @@ void HttpConnection::handle_write(TWriteCallback writeCallback, const boost::sys
 void HttpConnection::handle_read(TReadCallback readCallback, const boost::system::error_code& error, 
 	size_t bytes_transferred)
 {
-	const char* bufPtr = boost::asio::buffer_cast<const char*>(buffer_reply_.data());
+	const char* bufPtr = asio::buffer_cast<const char*>(buffer_reply_.data());
 
 	bool user_error = readCallback(bufPtr, error, bytes_transferred) == false;
 

@@ -11,6 +11,8 @@
 namespace nc
 {
 
+namespace asio = boost::asio;
+
 class UrlTitleCollector::impl
 {
 	friend class UrlTitleCollector;
@@ -19,7 +21,7 @@ public:
 	impl(const net::AsioContext& context);
 
 private:
-	boost::asio::strand strand_;
+	asio::strand strand_;
 	const net::AsioContext& context_;
 };
 
@@ -40,9 +42,9 @@ UrlTitleCollector::~UrlTitleCollector()
 
 void UrlTitleCollector::addUrl(std::size_t index, const net::Url& url, const std::string& title)
 {
-	boost::asio::io_service& io_service = pimpl_->context_.getImpl()->get_io_service();
+	asio::io_service& io_service = pimpl_->context_.getImpl()->get_io_service();
 
-	// use boost::asio::strand to avoid concurent calls
+	// use asio::strand to avoid concurent calls
 	io_service.post(pimpl_->strand_.wrap(
 		boost::bind(&UrlTitleCollector::addUrlImpl, this, index, url, title)
 	));

@@ -55,7 +55,7 @@
       <Filter>Source Files\data</Filter>
     </ClCompile>
     <ClCompile Include="net\httpconnection.cpp">
-      <Filter>Source Files\data</Filter>
+      <Filter>Source Files\net</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

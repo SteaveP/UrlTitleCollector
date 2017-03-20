@@ -15,20 +15,22 @@ namespace nc
 {
 namespace net
 {
+
+namespace asio = boost::asio;
 	
 AsioContext::impl::impl()
 try
-	: resolver_(io_service_), ctx_(boost::asio::ssl::context::sslv23_client)
+	: resolver_(io_service_), ctx_(asio::ssl::context::sslv23_client)
 {
 	boost::system::error_code error;
 	ctx_.load_verify_file("ca-bundle.crt", error);
 	if (error)
 	{
 		std::cerr << "load of ssl certification file failed! disable verifying\n";
-		ctx_.set_verify_mode(boost::asio::ssl::verify_none);
+		ctx_.set_verify_mode(asio::ssl::verify_none);
 	}
 	else
-		ctx_.set_verify_mode(boost::asio::ssl::verify_peer);
+		ctx_.set_verify_mode(asio::ssl::verify_peer);
 }
 catch (...)
 {
@@ -46,8 +48,8 @@ boost::shared_ptr<nc::IConnection> AsioContext::impl::create_connection(const Ur
 	bool useHttps = protocol == "https" || protocol.empty();
 	const char* port = useHttps ? "443" : "80";
 
-	boost::asio::ip::tcp::resolver::query query(url.getHost(), port);
-	boost::asio::ip::tcp::resolver::iterator iterator = resolver_.resolve(query);
+	asio::ip::tcp::resolver::query query(url.getHost(), port);
+	asio::ip::tcp::resolver::iterator iterator = resolver_.resolve(query);
 
 	if (useHttps)
 		return boost::make_shared<HttpsConnection>(io_service_, ctx_, iterator);
