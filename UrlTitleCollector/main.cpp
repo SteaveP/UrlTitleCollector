@@ -2,6 +2,7 @@
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/program_options.hpp>
 
 #include <fstream>
 
@@ -10,19 +11,21 @@
 
 #include "data/iconnection.h"
 #include "net/context.h"
+#include "options.h"
 
 // TODO explicit declare move ctors and operators to types with explicitly defined dtor
 // TODO use https://boost-experimental.github.io/di/
 // TODO use logging
 // TODO remove code duplication between HttpsConnection and with HttpConnection
+// TODO support input and output to cin and cout streams
 
-void try_to_start_worker_threads(nc::net::AsioContext& context, boost::thread_group& threads)
+void try_to_start_worker_threads(nc::net::AsioContext& context, boost::thread_group& threads, int threads_count)
 {
 	static bool started = false;
 
 	if (started == false)
 	{
-		for (int i = 0; i < 10; ++i)
+		for (int i = 0; i < threads_count; ++i)
 			threads.create_thread(boost::bind(&nc::net::AsioContext::run_loop, &context));
 
 		started = true;
@@ -32,24 +35,36 @@ void try_to_start_worker_threads(nc::net::AsioContext& context, boost::thread_gr
 int main(int argc, char* argv[])
 {
 	setlocale(0, "");
-	
-	if (argc != 3)
-	{
-		std::cerr << "Usage: client <in_file> <out_file>\n";
-		return 1;
-	}
 
+	nc::Options options;
+
+	// parse options
+	try
+	{
+		options.parse(argc, argv);
+		options.dispatch_options();
+	}
+	catch(const std::exception& error)
+	{
+		std::cout << "Arguments error: " << error.what() << "\n\n";
+		options.print_usage();
+
+		system("pause");
+		return -1;
+	}
+	
+	// run async operations
 	try
 	{
 		nc::net::AsioContext context;
 		boost::thread_group threads;
 
 		nc::net::UrlParser urlParser;
-		nc::UrlTitleCollector urlTitleCollector(context, argv[2]);
+		nc::UrlTitleCollector urlTitleCollector(context, options["output-file"].as<std::string>());
 		auto httpProvider = nc::IHttpProvider::create();
 		auto htmlParser = nc::IHtmlParser::create();
 		
-		std::ifstream input_file(argv[1], std::ios_base::in);
+		std::ifstream input_file(options["input-file"].as<std::string>(), std::ios_base::in);
 		std::string line; std::size_t index = 0;
 		while (std::getline(input_file, line))
 		{
@@ -74,7 +89,7 @@ int main(int argc, char* argv[])
 						boost::make_shared<boost::any>(extractorPtr)
 					);
 
-					try_to_start_worker_threads(context, threads);
+					try_to_start_worker_threads(context, threads, options["threads-count"].as<int>());
 				}
 				else
 				{
@@ -94,6 +109,8 @@ int main(int argc, char* argv[])
 	catch (std::exception& e)
 	{
 		std::cerr << "Exception: " << e.what() << "\n";
+		system("pause");
+		return 1;
 	}
 
 	system("pause");

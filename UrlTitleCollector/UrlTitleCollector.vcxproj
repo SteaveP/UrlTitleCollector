@@ -182,6 +182,7 @@
     <ClInclude Include="net\httpsconnection.h" />
     <ClInclude Include="net\context.h" />
     <ClInclude Include="net\url.h" />
+    <ClInclude Include="options.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
