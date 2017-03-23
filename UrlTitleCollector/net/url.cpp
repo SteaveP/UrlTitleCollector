@@ -9,7 +9,7 @@ namespace net
 
 Url UrlParser::Parse(const std::string& url)
 {
-	std::string pattern("^(?:(http[s]?)://)?([^/]*)(/.*)?$");
+	std::string pattern("^\\s*(?:(.*)://)?([^/]*)(/.*)?\\s*$");
 
 	std::regex r(pattern);
 	std::smatch results;

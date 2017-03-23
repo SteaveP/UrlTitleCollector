@@ -25,6 +25,15 @@
     <Filter Include="Header Files\data">
       <UniqueIdentifier>{ae1c35e8-f8fc-4027-8307-14b8e7214bbb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\tests">
+      <UniqueIdentifier>{d0930bdb-129d-4025-8750-54a979dce415}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\tests\net">
+      <UniqueIdentifier>{4058584d-f3bf-4926-bc89-8acc3fda8d40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\tests\data">
+      <UniqueIdentifier>{c72cf9fc-25a5-451e-98b9-481fdbdb46d0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -56,6 +65,12 @@
     </ClCompile>
     <ClCompile Include="net\httpconnection.cpp">
       <Filter>Source Files\net</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Tests\maintest.cpp">
+      <Filter>Source Files\tests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Tests\net\urlTest.cpp">
+      <Filter>Source Files\tests\net</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
