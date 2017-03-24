@@ -1,37 +1,38 @@
-#include "../../UrlTitleCollector/net/url.h"
-
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/data/monomorphic.hpp>
 
-namespace bdata = boost::unit_test::data;
+#include "../../UrlTitleCollector/net/url.h"
 
-const char* full_valid_dataset[] { 
-	"http://yandex.ru/test",
-	" https://yandex.ru/test ",
-	"http://www.yandex.ru/path",
-	" https://yandex.ru/ ",
-	"http://www.yandex.ru/long/path",
-	"http://www.ya ndex.ru/lon g/pa th",
-	"ftp://www.yandex.ru/path",
-	"http://yandex.ru/",
-};
+namespace // anonymous
+{
+	const char* full_valid_dataset[]{
+		"http://yandex.ru/test",
+		" https://yandex.ru/test ",
+		"http://www.yandex.ru/path",
+		" https://yandex.ru/ ",
+		"http://www.yandex.ru/long/path",
+		"http://www.ya ndex.ru/lon g/pa th",
+		"ftp://www.yandex.ru/path",
+		"http://yandex.ru/",
+	};
 
-const char* semi_valid_dataset[]{
-	"www.yandex.ru",
-	"http://yandex.ru",
-	" https://yandex.ru ",
-	"www.yandex.ru/test",
-	"ftp://www.yandex.ru ",
-	"somethingwrong",
-};
+	const char* semi_valid_dataset[]{
+		"www.yandex.ru",
+		"http://yandex.ru",
+		" https://yandex.ru ",
+		"www.yandex.ru/test",
+		"ftp://www.yandex.ru ",
+		"somethingwrong",
+	};
 
-const char* invalid_dataset[] { 
-	"",
-	"://",
-	"/"
-};
+	const char* invalid_dataset[]{
+		"",
+		"://",
+		"/"
+	};
+}
 
 BOOST_AUTO_TEST_SUITE(UrlTest);
 
