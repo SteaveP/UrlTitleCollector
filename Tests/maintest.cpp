@@ -10,6 +10,7 @@
 #include "maintest.h"
 
 // TODO tests with multiple worker threads
+// TODO tests for non-existing sites and for non-existing (code 404) pages
 
 test_input urls[] = {
 	{ "http://www.boost.org",	"boost" },

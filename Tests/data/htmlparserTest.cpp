@@ -26,6 +26,7 @@ namespace // anonymous
 	};
 
 	const char* partial_valid_dataset[]{
+		"<title>partial text</title",
 		"<title>partial text",
 		"<title>",
 	};
