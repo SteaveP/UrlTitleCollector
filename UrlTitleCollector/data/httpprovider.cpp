@@ -105,8 +105,10 @@ HttpReplyHeader HttpProvider::parseHeader(const char* buffer, size_t length, siz
 
 std::string HttpProvider::buildRequest(const net::Url& url, bool close_connection /*= false*/)
 {
+	std::string path = url.getPath().empty() ? "/" : url.getPath();
+
 	std::ostringstream s;
-	s << "GET " << url.getPath() << " HTTP/1.0\r\n";
+	s << "GET " << path << " HTTP/1.0\r\n";
 	s << "Host: " << url.getHost() << "\r\n";
 	s << "Accept: */*\r\n";
 
