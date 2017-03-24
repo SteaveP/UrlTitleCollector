@@ -116,5 +116,8 @@
     <ClInclude Include="options.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\Tests\maintest.h">
+      <Filter>Source Files\tests</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
