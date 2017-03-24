@@ -75,6 +75,9 @@
     <ClCompile Include="..\Tests\data\htmlparserTest.cpp">
       <Filter>Source Files\tests\data</Filter>
     </ClCompile>
+    <ClCompile Include="..\Tests\data\httpproviderTest.cpp">
+      <Filter>Source Files\tests\data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="net\url.h">
